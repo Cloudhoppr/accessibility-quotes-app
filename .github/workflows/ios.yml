@@ -24,7 +24,7 @@ jobs:
           - variant: dev
             configuration: Debug
             app_variant: development
-    runs-on: macos-15
+    runs-on: macos-26
     timeout-minutes: 45
     env:
       EXPO_PUBLIC_GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
@@ -35,9 +35,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: List installed Xcodes
+        run: ls -d /Applications/Xcode*.app || true
+
       - uses: maxim-lobanov/setup-xcode@v1
         with:
           xcode-version: latest-stable
+
+      - run: xcodebuild -version && swift --version
 
       - uses: actions/setup-node@v4
         with:
