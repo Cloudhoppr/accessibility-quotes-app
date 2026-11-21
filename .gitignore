@@ -41,3 +41,8 @@ yarn-error.*
 /android
 
 .env
+
+# raw demo source material (not bundled)
+assets/demo/*.mp4
+assets/demo/*.usdz
+scripts/prices-draft.json

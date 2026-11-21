@@ -3,77 +3,102 @@
   "location": "Chelsea, Manhattan, New York, NY",
   "contractor": "Chelsea Home Safety Co. (sample)",
   "currency": "USD",
-  "method": "STUB - placeholder numbers, to be replaced by Gemini 4 + Google Search research",
+  "method": "Hand estimates pending live research: web search of national and NYC cost guides plus retail product listings on 2026-11-21, labor set toward the high end of national ranges for Manhattan; Gemini 4 grounded refresh (scripts/fetch-prices.mjs) not yet run because no API key was available",
   "items": {
     "toilet_grab_bar": {
       "displayName": "Grab bar by the toilet",
       "partsLow": 30,
-      "partsHigh": 80,
-      "laborLow": 120,
-      "laborHigh": 250,
+      "partsHigh": 90,
+      "laborLow": 130,
+      "laborHigh": 280,
       "unit": "each",
       "defaultQty": 1,
-      "sources": []
+      "sources": [
+        { "title": "HomeAdvisor: How Much Does Grab Bar Installation Cost?", "url": "https://www.homeadvisor.com/cost/disability-accommodation/grab-bar" },
+        { "title": "Fixr: How much does it cost to install grab bars?", "url": "https://www.fixr.com/costs/grab-bars-installation" },
+        { "title": "Handoff: Cost to install a safety grab bar in Bronx, NY", "url": "https://www.handoff.ai/construction-costs/install-a-safety-grab-bar/bronx-ny" }
+      ]
     },
     "tub_shower_grab_bar": {
       "displayName": "Tub/shower grab bars",
-      "partsLow": 50,
-      "partsHigh": 150,
-      "laborLow": 150,
-      "laborHigh": 350,
+      "partsLow": 60,
+      "partsHigh": 160,
+      "laborLow": 200,
+      "laborHigh": 420,
       "unit": "set of 2",
       "defaultQty": 1,
-      "sources": []
+      "sources": [
+        { "title": "HomeAdvisor: How Much Does Grab Bar Installation Cost?", "url": "https://www.homeadvisor.com/cost/disability-accommodation/grab-bar" },
+        { "title": "Angi: How Much Does It Cost to Install a Grab Bar?", "url": "https://match.angi.com/cost/disability-accommodation/grab-bar" },
+        { "title": "Handoff: Cost to install a safety grab bar in Bronx, NY", "url": "https://www.handoff.ai/construction-costs/install-a-safety-grab-bar/bronx-ny" }
+      ]
     },
     "shower_seat": {
       "displayName": "Shower seat",
-      "partsLow": 40,
-      "partsHigh": 150,
+      "partsLow": 50,
+      "partsHigh": 120,
       "laborLow": 0,
       "laborHigh": 75,
       "unit": "each",
       "defaultQty": 1,
-      "sources": []
+      "sources": [
+        { "title": "Target: Drive Medical Plastic Tub Transfer Bench with Adjustable Backrest", "url": "https://www.target.com/p/drive-medical-plastic-tub-transfer-bench-with-adjustable-backrest/-/A-51389743" },
+        { "title": "Staples: Drive Medical Premium Series Shower Chair with Back and Arms", "url": "https://www.staples.com/Drive-Medical-Premium-Series-Shower-Chair-with-Back-and-Arms/product_1037156" }
+      ]
     },
     "raised_toilet_seat": {
       "displayName": "Raised toilet seat",
       "partsLow": 30,
-      "partsHigh": 90,
+      "partsHigh": 80,
       "laborLow": 0,
-      "laborHigh": 50,
+      "laborHigh": 40,
       "unit": "each",
       "defaultQty": 1,
-      "sources": []
+      "sources": [
+        { "title": "Staples: Drive Medical Locking Raised Toilet Seat with Arms", "url": "https://www.staples.com/Drive-Medical-Locking-Raised-Toilet-Seat-with-Arms--10-H--White--RTL12027RA-/product_1037172" },
+        { "title": "Walmart: Carex Raised Toilet Seat With Handles", "url": "https://www.walmart.com/ip/Carex-Raised-Toilet-Seat-With-Handles-Standard-Elongated-Toilets-Adds-3-5-Inches-to-Toilet-Height-Toilet-Seat-Riser-For-Handicap-and-Seniors/17215628" }
+      ]
     },
     "handheld_shower": {
       "displayName": "Handheld shower with slide bar",
       "partsLow": 40,
       "partsHigh": 150,
-      "laborLow": 120,
-      "laborHigh": 300,
+      "laborLow": 150,
+      "laborHigh": 320,
       "unit": "each",
       "defaultQty": 1,
-      "sources": []
+      "sources": [
+        { "title": "Homewyse: Cost to Install a Shower Head", "url": "https://www.homewyse.com/services/cost_to_install_shower_head.html" },
+        { "title": "Handoff: Average cost to install a handheld shower head in the US", "url": "https://www.handoff.ai/construction-costs/install-a-handheld-shower-head" },
+        { "title": "Angi: How Much Does It Cost to Replace a Showerhead?", "url": "https://angi.com/articles/cost-replace-shower-head.htm" }
+      ]
     },
     "nonslip_mat": {
       "displayName": "Non-slip strips and mat",
-      "partsLow": 15,
+      "partsLow": 20,
       "partsHigh": 50,
       "laborLow": 0,
       "laborHigh": 0,
       "unit": "set",
       "defaultQty": 1,
-      "sources": []
+      "sources": [
+        { "title": "Walmart: Shower strips (category listing)", "url": "https://www.walmart.com/c/kp/shower-strips" },
+        { "title": "Walmart: SlipX Solutions Adhesive 7.5\" Safety Treads, 12 ct", "url": "https://www.walmart.com/ip/856074370" }
+      ]
     },
     "lever_handles": {
       "displayName": "Lever faucet handles",
       "partsLow": 80,
       "partsHigh": 250,
-      "laborLow": 150,
+      "laborLow": 180,
       "laborHigh": 350,
       "unit": "each",
       "defaultQty": 1,
-      "sources": []
+      "sources": [
+        { "title": "HomeAdvisor: Faucet & plumbing repair costs in New York, NY", "url": "https://homeadvisor.com/tloc/New-York-NY/Faucets-Fixtures-and-Pipes-Repair-or-Replace" },
+        { "title": "HomeAdvisor: How Much Does Bathroom Faucet Replacement Cost?", "url": "https://www.homeadvisor.com/cost/plumbing/cost-to-replace-a-bathroom-faucet" },
+        { "title": "Roto-Rooter: Will a plumber install a new faucet in my bathroom?", "url": "https://rotorooter.com/frequently-asked-questions/faucets/will-a-plumber-install-a-new-faucet-in-my-bathroom" }
+      ]
     }
   }
 }

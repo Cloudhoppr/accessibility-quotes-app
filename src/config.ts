@@ -8,13 +8,13 @@ export const API_BASE = "https://generativelanguage.googleapis.com";
 
 export const DECISION_MODEL = "gemini-decision-1";
 // Gemini 4 variant used for the live, Google-Search-grounded price refresh.
-export const PRICE_MODEL = "gemini-4-hydrogen";
+export const PRICE_MODEL = "gemini-4-argon"; // fastest grounded variant in live tests (~16-20 s)
 export const IMAGE_MODEL = "gemini-nano-banana-2.1";
 export const IMAGE_MODEL_FALLBACK = "gemini-3.1-flash-lite-image";
 
 export const TIMEOUTS = {
   decisionMs: 15000,
-  priceMs: 25000,
+  priceMs: 60000,
   imageMs: 45000,
 };
 
