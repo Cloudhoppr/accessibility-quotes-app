@@ -1,0 +1,79 @@
+{
+  "gatheredOn": "2026-11-21",
+  "location": "Chelsea, Manhattan, New York, NY",
+  "contractor": "Chelsea Home Safety Co. (sample)",
+  "currency": "USD",
+  "method": "STUB - placeholder numbers, to be replaced by Gemini 4 + Google Search research",
+  "items": {
+    "toilet_grab_bar": {
+      "displayName": "Grab bar by the toilet",
+      "partsLow": 30,
+      "partsHigh": 80,
+      "laborLow": 120,
+      "laborHigh": 250,
+      "unit": "each",
+      "defaultQty": 1,
+      "sources": []
+    },
+    "tub_shower_grab_bar": {
+      "displayName": "Tub/shower grab bars",
+      "partsLow": 50,
+      "partsHigh": 150,
+      "laborLow": 150,
+      "laborHigh": 350,
+      "unit": "set of 2",
+      "defaultQty": 1,
+      "sources": []
+    },
+    "shower_seat": {
+      "displayName": "Shower seat",
+      "partsLow": 40,
+      "partsHigh": 150,
+      "laborLow": 0,
+      "laborHigh": 75,
+      "unit": "each",
+      "defaultQty": 1,
+      "sources": []
+    },
+    "raised_toilet_seat": {
+      "displayName": "Raised toilet seat",
+      "partsLow": 30,
+      "partsHigh": 90,
+      "laborLow": 0,
+      "laborHigh": 50,
+      "unit": "each",
+      "defaultQty": 1,
+      "sources": []
+    },
+    "handheld_shower": {
+      "displayName": "Handheld shower with slide bar",
+      "partsLow": 40,
+      "partsHigh": 150,
+      "laborLow": 120,
+      "laborHigh": 300,
+      "unit": "each",
+      "defaultQty": 1,
+      "sources": []
+    },
+    "nonslip_mat": {
+      "displayName": "Non-slip strips and mat",
+      "partsLow": 15,
+      "partsHigh": 50,
+      "laborLow": 0,
+      "laborHigh": 0,
+      "unit": "set",
+      "defaultQty": 1,
+      "sources": []
+    },
+    "lever_handles": {
+      "displayName": "Lever faucet handles",
+      "partsLow": 80,
+      "partsHigh": 250,
+      "laborLow": 150,
+      "laborHigh": 350,
+      "unit": "each",
+      "defaultQty": 1,
+      "sources": []
+    }
+  }
+}
