@@ -3,7 +3,7 @@ import * as Haptics from "expo-haptics";
 import { useState } from "react";
 import { ActionSheetIOS, ActivityIndicator, Image, Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import type { Photo, PhotoSlot } from "../contracts";
-import { SAMPLE_PHOTOS } from "../data/sample";
+import { SAMPLE_PHOTOS, SAMPLE_ROOM } from "../data/sample";
 import { useSession } from "../state/session";
 import { Banner, Body, Card, Gap, IconBadge, Pill, PrimaryButton, Screen, Title, type IconName } from "../ui/components";
 import { pickPhoto } from "../ui/photo";
@@ -43,7 +43,9 @@ export default function PhotosScreen() {
   const [busy, setBusy] = useState<PhotoSlot | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
-  const required = (slot: PhotoSlot) => slot === "toilet" || (slot === "bath" && s.room.hasTub);
+  // Toilet photo is required unless a scan (or the sample) showed there is no toilet.
+  const required = (slot: PhotoSlot) =>
+    (slot === "toilet" && (s.room.hasToilet || s.room.source === "none")) || (slot === "bath" && s.room.hasTub);
   const photoFor = (slot: PhotoSlot) => s.photos.find((p) => p.slot === slot);
   const missing = SLOTS.filter((d) => required(d.slot) && !photoFor(d.slot));
   const ready = missing.length === 0;
@@ -85,7 +87,7 @@ export default function PhotosScreen() {
 
   const useSamples = () => {
     setNotice(null);
-    set({ photos: SAMPLE_PHOTOS });
+    set({ room: SAMPLE_ROOM, scanJsonUri: null, photos: SAMPLE_PHOTOS, step: "analyzing" });
   };
 
   return (

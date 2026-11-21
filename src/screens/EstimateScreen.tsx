@@ -17,6 +17,9 @@ import { Card, Gap, PrimaryButton, Screen, SecondaryButton, Title, type IconName
 import { colors, radius, space, type } from "../ui/theme";
 import SourcesSheet, { friendlyDate } from "./SourcesSheet";
 
+// Survives remounts (App remounts screens on every step change).
+let pricesFor: unknown = null;
+
 export const money = (n: number) => `$${Math.round(n).toLocaleString("en-US")}`;
 
 export default function EstimateScreen() {
@@ -40,6 +43,8 @@ export default function EstimateScreen() {
     const recorded = shouldUseRecorded(cur);
     if (recorded ? !SAMPLE_LIVE_PRICES : !ENABLE_LIVE_PRICES) return;
     const token = cur.decision;
+    if (pricesFor === token) return; // already fetching/fetched for this analysis run
+    pricesFor = token;
     // Ask for every suggested fixture so toggling boxes later stays covered.
     const ids = cur.suggestions.length ? cur.suggestions.map((x) => x.fixtureId) : cur.selected;
     if (!ids.length) return;
