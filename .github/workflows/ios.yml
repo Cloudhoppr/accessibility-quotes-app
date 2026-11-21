@@ -1,0 +1,100 @@
+name: iOS build (unsigned .ipa)
+
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - "docs/**"
+      - "*.md"
+  workflow_dispatch:
+    inputs:
+      only:
+        description: "Build only one variant (release | dev | both)"
+        required: false
+        default: "both"
+
+concurrency:
+  group: ios-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    if: ${{ github.event_name != 'workflow_dispatch' || inputs.only == 'both' || inputs.only == matrix.variant }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - variant: release
+            configuration: Release
+            app_variant: production
+          - variant: dev
+            configuration: Debug
+            app_variant: development
+    runs-on: macos-15
+    timeout-minutes: 45
+    env:
+      EXPO_PUBLIC_GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      EXPO_PUBLIC_BUILD_SHA: ${{ github.sha }}
+      APP_VARIANT: ${{ matrix.app_variant }}
+      CI: "1"
+      EXPO_NO_TELEMETRY: "1"
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install JS dependencies
+        run: npm ci
+
+      - name: Typecheck (fast fail)
+        run: npx tsc --noEmit
+
+      - name: Generate native iOS project
+        run: npx expo prebuild --platform ios --clean --no-install
+
+      - name: Install pods
+        working-directory: ios
+        run: pod install
+
+      - name: Build (unsigned)
+        run: |
+          set -o pipefail
+          WS=$(ls -d ios/*.xcworkspace | head -1)
+          SCHEME=$(basename "$WS" .xcworkspace)
+          echo "Workspace: $WS  Scheme: $SCHEME"
+          xcodebuild \
+            -workspace "$WS" \
+            -scheme "$SCHEME" \
+            -configuration ${{ matrix.configuration }} \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            -quiet
+          echo "SCHEME=$SCHEME" >> "$GITHUB_ENV"
+
+      - name: Package .ipa
+        run: |
+          APP=$(ls -d build/Build/Products/${{ matrix.configuration }}-iphoneos/*.app | head -1)
+          echo "App bundle: $APP"
+          if [ "${{ matrix.configuration }}" = "Release" ] && [ ! -f "$APP/main.jsbundle" ]; then
+            echo "::error::main.jsbundle missing from Release build"; exit 1
+          fi
+          mkdir -p Payload
+          cp -R "$APP" Payload/
+          SHORT=$(echo "$GITHUB_SHA" | cut -c1-7)
+          zip -qry "SafeStep-${{ matrix.variant }}-$SHORT.ipa" Payload
+          ls -lh *.ipa
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: SafeStep-${{ matrix.variant }}
+          path: "*.ipa"
+          retention-days: 1
