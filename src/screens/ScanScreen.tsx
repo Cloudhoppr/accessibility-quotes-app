@@ -2,7 +2,8 @@ import { ExportType, ExpoRoomplan, ScanStatus, useRoomPlan } from "expo-roomplan
 import * as Haptics from "expo-haptics";
 import { File } from "expo-file-system";
 import { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Pressable, StyleSheet, View } from "react-native";
+import { Text } from "../ui/Text";
 import type { RoomSummary } from "../contracts";
 import { SAMPLE_ROOM } from "../data/sample";
 import { EMPTY_ROOM, summarizeRoom } from "../scan/summarizeRoom";

@@ -2,7 +2,8 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import type { ReactNode } from "react";
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View, type ViewStyle } from "react-native";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, View, type ViewStyle } from "react-native";
+import { Text } from "./Text";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { colors, MIN_TAP, radius, shadow, space, type } from "./theme";
 
@@ -45,8 +46,8 @@ export function Screen(props: {
       )}
       <Body
         style={{ flex: 1 }}
-        contentContainerStyle={scroll ? { padding: space.xl, paddingBottom: space.xxl } : undefined}
-        {...(!scroll ? { style: { flex: 1, padding: space.xl } } : {})}
+        contentContainerStyle={scroll ? { paddingHorizontal: 28, paddingTop: space.lg, paddingBottom: space.xxl } : undefined}
+        {...(!scroll ? { style: { flex: 1, paddingHorizontal: 28, paddingVertical: space.lg } } : {})}
       >
         {children}
       </Body>
@@ -59,7 +60,7 @@ function Progress({ stage }: { stage: number }) {
   return (
     <View style={s.progress} accessibilityLabel={`Step ${stage + 1} of 3: ${STAGES[stage]}`}>
       {STAGES.map((_, i) => (
-        <View key={i} style={[s.dot, i <= stage && { backgroundColor: colors.primary }, i === stage && { width: 28 }]} />
+        <View key={i} style={[s.dot, i < stage && { backgroundColor: colors.button }, i === stage && { width: 28, backgroundColor: colors.primary }]} />
       ))}
     </View>
   );
@@ -97,16 +98,16 @@ export function PrimaryButton(props: {
       }}
       style={({ pressed }) => [
         s.primary,
-        pressed && { backgroundColor: colors.primaryPressed, transform: [{ scale: 0.99 }] },
+        pressed && { backgroundColor: colors.buttonPressed, transform: [{ scale: 0.99 }] },
         (disabled || loading) && { opacity: 0.45 },
       ]}
     >
       {loading ? (
-        <ActivityIndicator color={colors.onPrimary} />
+        <ActivityIndicator color={colors.onButton} />
       ) : (
         <>
-          <Text style={[type.button, { color: colors.onPrimary }]}>{label}</Text>
-          {icon && <MaterialCommunityIcons name={icon} size={24} color={colors.onPrimary} style={{ marginLeft: space.sm }} />}
+          <Text style={[type.button, { color: colors.onButton }]}>{label}</Text>
+          {icon && <MaterialCommunityIcons name={icon} size={24} color={colors.onButton} style={{ marginLeft: space.sm }} />}
         </>
       )}
     </Pressable>
@@ -122,7 +123,7 @@ export function SecondaryButton(props: { label: string; onPress: () => void; ico
       style={({ pressed }) => [s.secondary, pressed && { backgroundColor: colors.primarySoft }]}
     >
       {props.icon && <MaterialCommunityIcons name={props.icon} size={22} color={colors.primary} style={{ marginRight: space.sm }} />}
-      <Text style={[type.button, { color: colors.primary, fontSize: 18 }]}>{props.label}</Text>
+      <Text style={[type.button, { color: colors.primary, fontSize: 18, fontWeight: "500" }]}>{props.label}</Text>
     </Pressable>
   );
 }
@@ -226,22 +227,22 @@ const s = StyleSheet.create({
   back: { flexDirection: "row", alignItems: "center", minHeight: 44, width: 80 },
   progress: { flexDirection: "row", gap: 6, alignItems: "center" },
   dot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.border },
-  footer: { paddingHorizontal: space.xl, paddingTop: space.md, paddingBottom: space.md, gap: space.md, backgroundColor: colors.bg },
+  footer: { paddingHorizontal: 28, paddingTop: space.md, paddingBottom: space.md, gap: space.md, backgroundColor: colors.bg },
   primary: {
-    minHeight: MIN_TAP + 4,
+    minHeight: 62,
     borderRadius: radius.md,
-    backgroundColor: colors.primary,
+    backgroundColor: colors.button,
     alignItems: "center",
     justifyContent: "center",
     flexDirection: "row",
     paddingHorizontal: space.xl,
-    ...shadow,
   },
   secondary: {
-    minHeight: MIN_TAP,
+    minHeight: 58,
     borderRadius: radius.md,
-    borderWidth: 2,
-    borderColor: colors.primary,
+    borderWidth: 1.5,
+    borderColor: colors.button,
+    backgroundColor: colors.surface,
     alignItems: "center",
     justifyContent: "center",
     flexDirection: "row",

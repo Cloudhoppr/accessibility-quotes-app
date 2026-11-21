@@ -2,7 +2,8 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useEffect, useRef, useState } from "react";
-import { AccessibilityInfo, ActivityIndicator, Animated, Easing, StyleSheet, Text, View } from "react-native";
+import { AccessibilityInfo, ActivityIndicator, Animated, Easing, StyleSheet, View } from "react-native";
+import { Text } from "../ui/Text";
 import { runAnalysis, type AnalysisStage } from "../flow/runAnalysis";
 import { useSession } from "../state/session";
 import { Body, Gap, PrimaryButton, Screen, SecondaryButton, Title } from "../ui/components";

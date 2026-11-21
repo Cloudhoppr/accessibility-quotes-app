@@ -1,85 +1,81 @@
-// Stage 2: cost estimate. Saved prices show instantly; a live Gemini 4 + Google Search refresh swaps in when it lands.
+// Stage 2: cost estimate.
+// While the live Gemini 4 + Google Search lookup runs, every number is a skeleton.
+// When it finishes: live prices if the search succeeded, otherwise the saved prices, quietly.
+// Failures are never surfaced in the UI. Design: Paper file "SafeStep – Blue & Plex".
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, Animated, Easing, Pressable, StyleSheet, Text, View } from "react-native";
+import { AccessibilityInfo, ActivityIndicator, Animated, Easing, Pressable, StyleSheet, View } from "react-native";
+import { Text } from "../ui/Text";
 import type { LivePrices, Result } from "../contracts";
 import { ENABLE_LIVE_PRICES } from "../config";
 import { fetchLivePrices } from "../ai/prices";
 import { sleep } from "../ai/withFallback";
 import { SAVED_PRICES } from "../data/prices";
 import { SAMPLE_LIVE_PRICES } from "../data/sample";
-import { FIXTURES } from "../fixtures";
 import { shouldUseRecorded } from "../flow/runAnalysis";
 import { buildEstimate } from "../logic/estimate";
 import { useSession } from "../state/session";
-import { Card, Gap, PrimaryButton, Screen, SecondaryButton, Title, type IconName } from "../ui/components";
+import { PrimaryButton, Screen, SecondaryButton } from "../ui/components";
 import { colors, radius, space, type } from "../ui/theme";
-import SourcesSheet, { friendlyDate } from "./SourcesSheet";
+import SourcesSheet from "./SourcesSheet";
 
 // Survives remounts (App remounts screens on every step change).
 let pricesFor: unknown = null;
 
 export const money = (n: number) => `$${Math.round(n).toLocaleString("en-US")}`;
 
+const SKELETON_WIDTHS = [104, 92, 80, 98, 86];
+
 export default function EstimateScreen() {
   const { s, set, go, reset } = useSession();
-  const [fetching, setFetching] = useState(false);
   const [sheet, setSheet] = useState(false);
-  const started = useRef(false);
   const sessionRef = useRef(s);
   sessionRef.current = s;
+
+  const recorded = shouldUseRecorded(s);
+  const canFetch = recorded ? !!SAMPLE_LIVE_PRICES : ENABLE_LIVE_PRICES;
+  // Loading until the lookup for this analysis run has resolved (live or fallback).
+  const loading = canFetch && s.livePrices == null;
 
   const live: LivePrices | null = s.livePrices?.source === "live" ? s.livePrices.value : null;
   const estimate = useMemo(() => buildEstimate(s.selected, SAVED_PRICES, live), [s.selected, live]);
   const isLive = estimate.priceSource === "live";
 
-  // Background live refresh, once per analysis run. Saved prices are already on screen.
+  // Start the lookup once per analysis run.
   useEffect(() => {
-    if (started.current) return;
-    started.current = true;
     const cur = sessionRef.current;
-    if (cur.livePrices) return;
-    const recorded = shouldUseRecorded(cur);
-    if (recorded ? !SAMPLE_LIVE_PRICES : !ENABLE_LIVE_PRICES) return;
+    if (cur.livePrices || !canFetch) return;
     const token = cur.decision;
-    if (pricesFor === token) return; // already fetching/fetched for this analysis run
+    if (pricesFor === token) return; // already in flight for this run; its result lands in the session
     pricesFor = token;
     // Ask for every suggested fixture so toggling boxes later stays covered.
     const ids = cur.suggestions.length ? cur.suggestions.map((x) => x.fixtureId) : cur.selected;
-    if (!ids.length) return;
-    setFetching(true);
     (async () => {
       let r: Result<LivePrices | null>;
-      if (recorded) {
-        await sleep(2500);
-        r = { source: "live", value: SAMPLE_LIVE_PRICES, ms: 2500 };
-      } else {
-        r = await fetchLivePrices(ids);
-      }
+      if (!ids.length) r = { source: "fallback", value: null, ms: 0 };
+      else if (recorded) {
+        await sleep(3000);
+        r = { source: "live", value: SAMPLE_LIVE_PRICES, ms: 3000 };
+      } else r = await fetchLivePrices(ids); // never throws; fallback on any failure
       set((prev) => (prev.decision !== token ? {} : { livePrices: r }));
-      setFetching(false);
-    })().catch(() => setFetching(false));
-  }, [set]);
+    })().catch(() => set((prev) => (prev.decision !== token ? {} : { livePrices: { source: "fallback", value: null, ms: 0 } })));
+  }, [set, canFetch, recorded]);
 
-  // Celebrate the swap to live prices with a gentle pulse.
-  const pulse = useRef(new Animated.Value(0)).current;
-  const wasLive = useRef(isLive);
+  // Reveal numbers with a soft fade when loading finishes.
+  const reveal = useRef(new Animated.Value(loading ? 0 : 1)).current;
+  const wasLoading = useRef(loading);
   useEffect(() => {
-    if (isLive && !wasLive.current) {
-      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
-      pulse.setValue(0);
-      Animated.sequence([
-        Animated.timing(pulse, { toValue: 1, duration: 260, easing: Easing.out(Easing.quad), useNativeDriver: true }),
-        Animated.timing(pulse, { toValue: 0, duration: 420, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
-      ]).start();
+    if (wasLoading.current && !loading) {
+      if (isLive) Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => {});
+      AccessibilityInfo.announceForAccessibility?.(`Estimated total ${money(estimate.totalLow)} to ${money(estimate.totalHigh)}.`);
+      reveal.setValue(0);
+      Animated.timing(reveal, { toValue: 1, duration: 450, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start();
     }
-    wasLive.current = isLive;
-  }, [isLive, pulse]);
-  const totalScale = pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.04] });
+    wasLoading.current = loading;
+  }, [loading, isLive, reveal, estimate.totalLow, estimate.totalHigh]);
 
   const contractor = estimate.contractor.replace(/\s*\(sample\)\s*$/i, "");
-  const n = estimate.lines.length;
 
   return (
     <Screen
@@ -87,207 +83,174 @@ export default function EstimateScreen() {
       onBack={() => go("suggestions")}
       footer={
         <>
-          <PrimaryButton label="Done" icon="check" onPress={() => reset(true)} />
+          <PrimaryButton label="Done" onPress={() => reset(true)} />
           <SecondaryButton label="Back to suggestions" onPress={() => go("suggestions")} />
         </>
       }
     >
-      <Title>Your cost estimate</Title>
-      <Text style={type.bodyMuted}>
-        {n} safety {n === 1 ? "fixture" : "fixtures"}, installed in Chelsea, Manhattan.
+      <Text style={type.title} accessibilityRole="header">
+        Your cost estimate
       </Text>
-      <Gap h={space.lg} />
-      <PriceBadge fetching={fetching && !isLive} live={isLive} gatheredOn={estimate.gatheredOn} />
-      <Gap h={space.lg} />
+      <Text style={[type.bodyMuted, { marginTop: 6 }]}>Installed prices for Chelsea, Manhattan.</Text>
 
-      <Animated.View style={{ transform: [{ scale: totalScale }] }}>
-        <View
-          style={st.totalCard}
-          accessible
-          accessibilityLabel={`Estimated total ${money(estimate.totalLow)} to ${money(estimate.totalHigh)}, before tax.`}
-        >
-          <Text style={[type.label, { color: colors.onPrimary, opacity: 0.85 }]}>Estimated total</Text>
-          <Gap h={space.xs} />
-          <Text style={[type.display, { color: colors.onPrimary, fontSize: 38, lineHeight: 46 }]} adjustsFontSizeToFit numberOfLines={1}>
-            <TweenMoney value={estimate.totalLow} /> – <TweenMoney value={estimate.totalHigh} />
-          </Text>
-          <Text style={[type.small, { color: colors.onPrimary, opacity: 0.85 }]}>Estimate before tax</Text>
-        </View>
-      </Animated.View>
-      <Gap h={space.xl} />
+      {/* Total */}
+      <View
+        style={st.totalCard}
+        accessible
+        accessibilityLabel={
+          loading
+            ? "Estimated total. Checking current prices in Manhattan."
+            : `Estimated total ${money(estimate.totalLow)} to ${money(estimate.totalHigh)}, before tax.`
+        }
+      >
+        <Text style={st.totalLabel}>Estimated total</Text>
+        {loading ? (
+          <>
+            <View style={st.skelTotalRow}>
+              <Skeleton width={118} height={36} radius={10} color="rgba(255,255,255,0.75)" />
+              <View style={st.skelDash} />
+              <Skeleton width={118} height={36} radius={10} color="rgba(255,255,255,0.75)" />
+            </View>
+            <View style={st.status}>
+              <ActivityIndicator size="small" color={colors.primary} />
+              <Text style={st.statusText}>Checking current prices in Manhattan…</Text>
+            </View>
+          </>
+        ) : (
+          <Animated.View style={{ opacity: reveal, gap: 12 }}>
+            <Text style={st.totalValue} adjustsFontSizeToFit numberOfLines={1}>
+              {money(estimate.totalLow)} – {money(estimate.totalHigh)}
+            </Text>
+            <Text style={type.small}>Before tax</Text>
+            {isLive && (
+              <View style={st.liveBadge}>
+                <Text style={st.liveBadgeText}>From Gemini 4 + Google Search</Text>
+              </View>
+            )}
+          </Animated.View>
+        )}
+      </View>
 
-      <Card>
+      {/* Lines */}
+      <View style={{ marginTop: 28 }}>
         {estimate.lines.map((l, i) => {
-          const f = FIXTURES[l.fixtureId];
           const unit = SAVED_PRICES.items[l.fixtureId]?.unit ?? "each";
           return (
             <View
               key={l.fixtureId}
-              style={[st.line, i > 0 && st.divider]}
+              style={st.line}
               accessible
-              accessibilityLabel={`${l.name}, ${l.qty} ${unit}, ${money(l.low)} to ${money(l.high)}${l.live ? ", current price" : ""}.`}
+              accessibilityLabel={loading ? `${l.name}, ${l.qty} ${unit}, price loading.` : `${l.name}, ${l.qty} ${unit}, ${money(l.low)} to ${money(l.high)}.`}
             >
-              <View style={st.lineIcon}>
-                <MaterialCommunityIcons name={(f?.icon ?? "tools") as IconName} size={24} color={colors.primary} />
-              </View>
-              <View style={{ flex: 1, marginLeft: space.md }}>
-                <Text style={type.label}>{l.name}</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={st.lineName}>{l.name}</Text>
                 <Text style={type.small}>
-                  {l.qty} × {unit} · parts and installation
+                  {l.qty} {unit}
                 </Text>
               </View>
-              <View style={{ alignItems: "flex-end", marginLeft: space.sm }}>
-                <Text style={[type.label, { fontVariant: ["tabular-nums"] }]}>
-                  <TweenMoney value={l.low} />–<TweenMoney value={l.high} />
-                </Text>
-                {l.live && (
-                  <View style={st.liveTag}>
-                    <View style={st.liveDot} />
-                    <Text style={[type.small, { fontSize: 13, color: colors.success, fontWeight: "700" }]}>live</Text>
-                  </View>
-                )}
-              </View>
+              {loading ? (
+                <Skeleton width={SKELETON_WIDTHS[i % SKELETON_WIDTHS.length]} height={20} radius={6} />
+              ) : (
+                <Animated.View style={{ opacity: reveal, flexShrink: 0 }}>
+                  <Text style={st.linePrice}>
+                    {money(l.low)} – {money(l.high)}
+                  </Text>
+                </Animated.View>
+              )}
             </View>
           );
         })}
-      </Card>
-      <Gap h={space.lg} />
+        <Pressable
+          onPress={() => setSheet(true)}
+          accessibilityRole="button"
+          accessibilityLabel="Where do these prices come from?"
+          hitSlop={8}
+          style={({ pressed }) => [st.link, pressed && { opacity: 0.6 }]}
+        >
+          <MaterialCommunityIcons name="information-outline" size={20} color={colors.primary} />
+          <Text style={st.linkText}>Where do these prices come from?</Text>
+        </Pressable>
+      </View>
 
-      <Card>
-        <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <View style={[st.lineIcon, { backgroundColor: colors.accentSoft }]}>
-            <MaterialCommunityIcons name="account-hard-hat" size={24} color={colors.accent} />
-          </View>
-          <View style={{ flex: 1, marginLeft: space.md }}>
-            <Text style={type.small}>Sample contractor</Text>
-            <Text style={type.label}>{contractor}</Text>
-            <Text style={type.small}>{estimate.location}</Text>
-          </View>
+      {/* Contractor */}
+      <View style={st.contractor} accessible accessibilityLabel={`Sample contractor: ${contractor}.`}>
+        <View style={st.contractorIcon}>
+          <MaterialCommunityIcons name="wrench-outline" size={22} color={colors.primary} />
         </View>
-        <View style={st.soon} accessible accessibilityLabel="Request a visit. Coming soon.">
-          <MaterialCommunityIcons name="calendar-clock" size={20} color={colors.inkMuted} />
-          <Text style={[type.label, { color: colors.inkMuted, marginLeft: space.sm }]}>Request a visit · Coming soon</Text>
+        <View style={{ flex: 1 }}>
+          <Text style={type.small}>Sample contractor</Text>
+          <Text style={[type.label, { fontWeight: "500" }]}>{contractor}</Text>
         </View>
-      </Card>
-      <Gap h={space.lg} />
-
-      <Text style={[type.small, { textAlign: "center" }]}>Sample estimate for illustration. Not a real quote.</Text>
-      <Gap h={space.md} />
-      <Pressable
-        onPress={() => setSheet(true)}
-        accessibilityRole="button"
-        accessibilityLabel="Where do these prices come from?"
-        style={({ pressed }) => [st.link, pressed && { backgroundColor: colors.primarySoft }]}
-      >
-        <MaterialCommunityIcons name="information-outline" size={22} color={colors.primary} />
-        <Text style={[type.label, { color: colors.primary, marginLeft: space.sm, textDecorationLine: "underline" }]}>
-          Where do these prices come from?
-        </Text>
-      </Pressable>
+      </View>
 
       <SourcesSheet visible={sheet} onClose={() => setSheet(false)} estimate={estimate} />
     </Screen>
   );
 }
 
-function PriceBadge({ fetching, live, gatheredOn }: { fetching: boolean; live: boolean; gatheredOn: string }) {
-  const fade = useRef(new Animated.Value(1)).current;
-  const kind = fetching ? "fetching" : live ? "live" : "saved";
-  const first = useRef(true);
+/** A soft placeholder block that gently pulses while loading. */
+function Skeleton({ width, height, radius: r, color = colors.skeleton }: { width: number; height: number; radius: number; color?: string }) {
+  const pulse = useRef(new Animated.Value(0.55)).current;
   useEffect(() => {
-    if (first.current) {
-      first.current = false;
-      return;
-    }
-    fade.setValue(0);
-    Animated.timing(fade, { toValue: 1, duration: 400, useNativeDriver: true }).start();
-  }, [kind, fade]);
-
-  const text =
-    kind === "fetching"
-      ? "Checking current NYC prices…"
-      : kind === "live"
-        ? "Live · Gemini 4 + Google Search"
-        : `Saved prices · gathered ${friendlyDate(gatheredOn)}`;
-  const bg = kind === "live" ? colors.primarySoft : colors.surfaceAlt;
-  const fg = kind === "live" ? colors.primary : colors.inkMuted;
-
-  return (
-    <Animated.View
-      style={[st.badge, { backgroundColor: bg, opacity: fade }]}
-      accessible
-      accessibilityLabel={text.replace("·", ",")}
-      accessibilityLiveRegion="polite"
-    >
-      {kind === "fetching" ? (
-        <ActivityIndicator size="small" color={colors.inkMuted} />
-      ) : (
-        <MaterialCommunityIcons name={kind === "live" ? "web-check" : "content-save-outline"} size={18} color={fg} />
-      )}
-      <Text style={[type.small, { color: fg, fontWeight: "700", marginLeft: 6 }]}>{text}</Text>
-    </Animated.View>
-  );
-}
-
-/** Money text that counts smoothly to a new value when it changes. */
-function TweenMoney({ value }: { value: number }) {
-  const [shown, setShown] = useState(value);
-  const anim = useRef(new Animated.Value(value)).current;
-  useEffect(() => {
-    const id = anim.addListener(({ value: v }) => setShown(v));
-    Animated.timing(anim, { toValue: value, duration: 700, easing: Easing.out(Easing.cubic), useNativeDriver: false }).start();
-    return () => anim.removeListener(id);
-  }, [value, anim]);
-  return <>{money(shown)}</>;
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, { toValue: 1, duration: 750, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 0.55, duration: 750, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
+      ])
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [pulse]);
+  return <Animated.View style={{ width, height, borderRadius: r, backgroundColor: color, opacity: pulse, flexShrink: 0 }} />;
 }
 
 const st = StyleSheet.create({
-  badge: {
+  totalCard: {
+    marginTop: space.xl,
+    marginHorizontal: -4,
+    backgroundColor: colors.primarySoft,
+    borderRadius: radius.lg,
+    paddingTop: 22,
+    paddingBottom: 20,
+    paddingHorizontal: 22,
+    gap: 14,
+  },
+  totalLabel: { fontSize: 17, lineHeight: 22, fontWeight: "500", color: colors.ink },
+  totalValue: { fontSize: 40, lineHeight: 46, fontWeight: "600", color: colors.ink, letterSpacing: -0.8 },
+  skelTotalRow: { flexDirection: "row", alignItems: "center", gap: 12 },
+  skelDash: { width: 14, height: 3, borderRadius: 2, backgroundColor: "#B9CCDE" },
+  status: { flexDirection: "row", alignItems: "center", gap: 10 },
+  statusText: { fontSize: 14, lineHeight: 20, fontWeight: "600", color: colors.inkMuted },
+  liveBadge: {
+    alignSelf: "flex-start",
+    backgroundColor: colors.surface,
+    borderRadius: radius.pill,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
+  liveBadgeText: { fontSize: 14, lineHeight: 18, fontWeight: "600", color: colors.primary },
+  line: {
     flexDirection: "row",
     alignItems: "center",
-    alignSelf: "flex-start",
-    borderRadius: radius.pill,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    minHeight: 32,
+    gap: space.md,
+    paddingVertical: space.lg,
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border,
+    minHeight: 72,
   },
-  totalCard: {
-    backgroundColor: colors.primary,
-    borderRadius: radius.lg,
-    padding: space.xl,
-    shadowColor: "#1D2B36",
-    shadowOpacity: 0.15,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 6 },
-  },
-  line: { flexDirection: "row", alignItems: "center", paddingVertical: space.sm },
-  divider: { borderTopWidth: 1, borderTopColor: colors.border, marginTop: space.sm, paddingTop: space.md },
-  lineIcon: {
+  lineName: { fontSize: 18, lineHeight: 24, fontWeight: "500", color: colors.ink },
+  linePrice: { fontSize: 18, lineHeight: 24, fontWeight: "500", color: colors.ink, fontVariant: ["tabular-nums"] },
+  link: { flexDirection: "row", alignItems: "center", gap: space.sm, paddingTop: space.lg, minHeight: 44 },
+  linkText: { fontSize: 17, lineHeight: 22, fontWeight: "500", color: colors.primary, textDecorationLine: "underline" },
+  contractor: { flexDirection: "row", alignItems: "center", gap: 14, marginTop: space.xl },
+  contractorIcon: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: colors.primarySoft,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  liveTag: { flexDirection: "row", alignItems: "center", marginTop: 2 },
-  liveDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: colors.success, marginRight: 4 },
-  soon: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    marginTop: space.lg,
-    minHeight: 48,
-    borderRadius: radius.md,
-    borderWidth: 1.5,
-    borderStyle: "dashed",
+    backgroundColor: colors.surface,
+    borderWidth: 1,
     borderColor: colors.border,
-  },
-  link: {
-    flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    minHeight: 48,
-    borderRadius: radius.md,
   },
 });

@@ -2,7 +2,8 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useEffect, useRef, useState } from "react";
-import { ActivityIndicator, Animated, Image, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Animated, Image, Pressable, StyleSheet, View } from "react-native";
+import { Text } from "./Text";
 import Shimmer from "./Shimmer";
 import { colors, MIN_TAP, radius, space, type } from "./theme";
 

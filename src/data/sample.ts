@@ -72,4 +72,21 @@ export const SAMPLE_PREVIEWS: Partial<Record<FixtureId, string>> = {
 };
 
 /** Recorded live price response, used when Demo Mode is on. null = show saved prices. */
-export const SAMPLE_LIVE_PRICES: LivePrices | null = null;
+// Recorded from a live Gemini 4 (gemini-4-argon) + Google Search call on 2026-11-21 (10.2 s),
+// via scripts/record-sample-prices.ts. All five ranges passed the 0.33x-3x check against saved prices.
+export const SAMPLE_LIVE_PRICES: LivePrices | null = {
+  items: {
+    shower_seat: { low: 35, high: 150 },
+    tub_shower_grab_bar: { low: 300, high: 650 },
+    nonslip_mat: { low: 15, high: 50 },
+    handheld_shower: { low: 200, high: 550 },
+    lever_handles: { low: 150, high: 450 },
+  },
+  sources: [
+    { title: 'Google search: "grab bar installation cost Manhattan NYC"', url: "https://www.google.com/search?q=grab%20bar%20installation%20cost%20Manhattan%20NYC" },
+    { title: 'Google search: "handheld shower slide bar installation cost NYC"', url: "https://www.google.com/search?q=handheld%20shower%20slide%20bar%20installation%20cost%20NYC" },
+    { title: 'Google search: "shower seat cost non slip bath mat cost"', url: "https://www.google.com/search?q=shower%20seat%20cost%20non%20slip%20bath%20mat%20cost" },
+    { title: 'Google search: "lever faucet handle replacement cost NYC plumber"', url: "https://www.google.com/search?q=lever%20faucet%20handle%20replacement%20cost%20NYC%20plumber" },
+  ],
+  fetchedAt: "2026-11-21T21:37:15.610Z",
+};

@@ -1,7 +1,8 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import { useState } from "react";
-import { ActionSheetIOS, ActivityIndicator, Image, Platform, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActionSheetIOS, ActivityIndicator, Image, Platform, Pressable, StyleSheet, View } from "react-native";
+import { Text } from "../ui/Text";
 import type { Photo, PhotoSlot } from "../contracts";
 import { SAMPLE_PHOTOS, SAMPLE_ROOM } from "../data/sample";
 import { useSession } from "../state/session";

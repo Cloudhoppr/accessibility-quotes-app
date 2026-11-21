@@ -1,7 +1,8 @@
 // Top-level safety net (M9): render errors AND fatal JS errors (via ErrorUtils) show a
 // friendly "Start over" screen instead of the app silently closing in a Release build.
 import { Component, Fragment, type ErrorInfo, type ReactNode } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, View } from "react-native";
+import { Text } from "./Text";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { noteDebug } from "../screens/DebugScreen";
 import { Body, Gap, IconBadge, PrimaryButton, Title } from "./components";

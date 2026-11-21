@@ -1,3 +1,4 @@
+import { useFonts } from "expo-font";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useRef, type ComponentType, type ReactNode } from "react";
 import { AccessibilityInfo, Animated, Easing, StyleSheet, View } from "react-native";
@@ -13,6 +14,7 @@ import SuggestionsScreen from "./src/screens/SuggestionsScreen";
 import WelcomeScreen from "./src/screens/WelcomeScreen";
 import { SessionProvider, useSession } from "./src/state/session";
 import { ErrorBoundary, installGlobalErrorHandler } from "./src/ui/ErrorBoundary";
+import { PLEX_FONTS } from "./src/ui/Text";
 import { colors } from "./src/ui/theme";
 
 installGlobalErrorHandler();
@@ -37,6 +39,9 @@ const SCREENS: Record<Step, ComponentType> = {
 const ORDER: Step[] = ["welcome", "intake", "scan", "photos", "analyzing", "suggestions", "estimate"];
 
 export default function App() {
+  const [fontsLoaded, fontError] = useFonts(PLEX_FONTS);
+  // Hold a plain background for the split second fonts take to load; if they fail, render anyway.
+  if (!fontsLoaded && !fontError) return <View style={st.root} />;
   return (
     <SafeAreaProvider style={{ backgroundColor: colors.bg }}>
       <StatusBar style="dark" />

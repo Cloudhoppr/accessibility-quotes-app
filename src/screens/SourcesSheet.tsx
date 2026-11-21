@@ -1,6 +1,7 @@
 // "Where do these prices come from?" page sheet. Lists the research method and every cited source.
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { Linking, Modal, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Linking, Modal, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Text } from "../ui/Text";
 import type { Estimate, PriceSource } from "../contracts";
 import { SAVED_PRICES } from "../data/prices";
 import { useSession } from "../state/session";

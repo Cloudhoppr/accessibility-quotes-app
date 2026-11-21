@@ -1,20 +1,20 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import { LinearGradient } from "expo-linear-gradient";
 import { useEffect } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Text } from "../ui/Text";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { BUILD_SHA, HAS_KEY } from "../config";
+import { HAS_KEY } from "../config";
 import { SAMPLE_PHOTOS, SAMPLE_ROOM } from "../data/sample";
 import { EMPTY_ROOM } from "../scan/summarizeRoom";
 import { INITIAL_SESSION, useSession } from "../state/session";
-import { IconBadge, Pill, PrimaryButton, SecondaryButton, type IconName } from "../ui/components";
-import { colors, radius, shadow, space, type } from "../ui/theme";
+import { Pill, PrimaryButton, SecondaryButton, type IconName } from "../ui/components";
+import { colors, space } from "../ui/theme";
 import { useDebug } from "./DebugScreen";
 
 const POINTS: { icon: IconName; title: string; text: string }[] = [
   { icon: "cellphone", title: "Scan the bathroom", text: "Walk around with your phone. About one minute." },
-  { icon: "shield-check", title: "See what would help", text: "Simple suggestions like grab bars and a shower seat." },
+  { icon: "shield-check-outline", title: "See what would help", text: "Simple suggestions like grab bars and a shower seat." },
   { icon: "cash", title: "Know the cost", text: "An estimate with local prices for Chelsea, Manhattan." },
 ];
 
@@ -64,84 +64,79 @@ export default function WelcomeScreen() {
     });
 
   return (
-    <LinearGradient colors={[colors.primarySoft, colors.bg, colors.bg]} locations={[0, 0.45, 1]} style={{ flex: 1 }}>
-      <SafeAreaView style={{ flex: 1 }} edges={["top", "bottom"]}>
-        <View style={st.topRow}>
-          {s.demoMode ? <Pill label="Demo mode" tone="accent" icon="play-circle-outline" /> : <View />}
-        </View>
-        <ScrollView contentContainerStyle={st.body}>
-          <Pressable
-            onLongPress={toggleDemo}
-            delayLongPress={700}
-            accessibilityRole="image"
-            accessibilityLabel="SafeStep logo"
-            style={st.logo}
-          >
-            <MaterialCommunityIcons name="shield-home" size={56} color={colors.onPrimary} />
-          </Pressable>
+    <SafeAreaView style={st.root} edges={["top", "bottom"]}>
+      <View style={st.topRow}>
+        {s.demoMode ? <Pill label="Demo mode" tone="accent" icon="play-circle-outline" /> : <View />}
+      </View>
+      <ScrollView contentContainerStyle={st.body}>
+        <Pressable
+          onLongPress={toggleDemo}
+          delayLongPress={700}
+          accessibilityRole="image"
+          accessibilityLabel="SafeStep logo"
+          style={st.logo}
+        >
+          <MaterialCommunityIcons name="home-outline" size={38} color={colors.primary} />
+        </Pressable>
 
-          <Pressable onLongPress={openDebug} delayLongPress={900} accessible={false}>
-            <Text style={st.appName} accessibilityRole="header">
-              SafeStep
-            </Text>
-          </Pressable>
-          <Text style={st.tagline}>A safer bathroom, step by step.</Text>
-          <Text style={[type.bodyMuted, { marginTop: space.md }]}>
-            For older adults and the people who care for them.
+        <Pressable onLongPress={openDebug} delayLongPress={900} accessible={false}>
+          <Text style={st.appName} accessibilityRole="header">
+            SafeStep
           </Text>
+        </Pressable>
+        <Text style={st.tagline}>A safer bathroom, step by step.</Text>
 
-          <View style={st.points}>
-            {POINTS.map((p, i) => (
-              <View key={p.title} style={[st.point, i > 0 && st.pointDivider]} accessible accessibilityLabel={`${p.title}. ${p.text}`}>
-                <IconBadge name={p.icon} size={52} tone={i === 2 ? "accent" : "primary"} />
-                <View style={{ flex: 1, marginLeft: space.lg }}>
-                  <Text style={type.label}>{p.title}</Text>
-                  <Text style={[type.small, { fontSize: 16, lineHeight: 22, marginTop: 2 }]}>{p.text}</Text>
-                </View>
+        <View style={st.points}>
+          {POINTS.map((p) => (
+            <View key={p.title} style={st.point} accessible accessibilityLabel={`${p.title}. ${p.text}`}>
+              <View style={st.pointIcon}>
+                <MaterialCommunityIcons name={p.icon} size={22} color={colors.primary} />
               </View>
-            ))}
-          </View>
-        </ScrollView>
-
-        <View style={st.footer}>
-          <PrimaryButton label="Get started" icon="arrow-right" onPress={start} />
-          <SecondaryButton label="Try a sample bathroom" icon="home-heart" onPress={trySample} />
-          <Pressable onLongPress={openDebug} delayLongPress={900} accessible={false}>
-            <Text style={st.meta}>About 3 minutes · No account needed · v{BUILD_SHA}</Text>
-          </Pressable>
+              <View style={{ flex: 1 }}>
+                <Text style={st.pointTitle}>{p.title}</Text>
+                <Text style={st.pointText}>{p.text}</Text>
+              </View>
+            </View>
+          ))}
         </View>
-      </SafeAreaView>
-    </LinearGradient>
+      </ScrollView>
+
+      <View style={st.footer}>
+        <PrimaryButton label="Get started" icon="arrow-right" onPress={start} />
+        <SecondaryButton label="Try a sample bathroom" icon="home-outline" onPress={trySample} />
+      </View>
+    </SafeAreaView>
   );
 }
 
 const st = StyleSheet.create({
-  topRow: { height: 40, paddingHorizontal: space.xl, flexDirection: "row", justifyContent: "flex-end", alignItems: "center" },
-  body: { paddingHorizontal: space.xl, paddingTop: space.md, paddingBottom: space.xl },
+  root: { flex: 1, backgroundColor: colors.bg },
+  topRow: { height: 40, paddingHorizontal: 28, flexDirection: "row", justifyContent: "flex-end", alignItems: "center" },
+  body: { paddingHorizontal: 28, paddingTop: space.lg, paddingBottom: space.xl },
   logo: {
-    width: 96,
-    height: 96,
-    borderRadius: 30,
-    backgroundColor: colors.primary,
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: colors.primarySoft,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: space.xl,
-    ...shadow,
-    shadowOpacity: 0.18,
+    marginBottom: 20,
   },
-  appName: { fontSize: 44, lineHeight: 50, fontWeight: "800", color: colors.ink, letterSpacing: -0.5 },
-  tagline: { fontSize: 24, lineHeight: 31, fontWeight: "600", color: colors.primary, marginTop: space.xs },
-  points: {
-    marginTop: space.xxl,
+  appName: { fontSize: 44, lineHeight: 50, fontWeight: "600", color: colors.ink, letterSpacing: -0.9 },
+  tagline: { fontSize: 22, lineHeight: 30, fontWeight: "400", color: colors.inkMuted, marginTop: 10 },
+  points: { marginTop: 36, gap: 22 },
+  point: { flexDirection: "row", alignItems: "flex-start", gap: space.lg },
+  pointIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
     backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    paddingHorizontal: space.lg,
     borderWidth: 1,
     borderColor: colors.border,
-    ...shadow,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  point: { flexDirection: "row", alignItems: "center", paddingVertical: space.lg },
-  pointDivider: { borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border },
-  footer: { paddingHorizontal: space.xl, paddingTop: space.md, paddingBottom: space.sm, gap: space.md },
-  meta: { ...type.small, fontSize: 14, textAlign: "center", paddingVertical: space.xs },
+  pointTitle: { fontSize: 19, lineHeight: 26, fontWeight: "600", color: colors.ink },
+  pointText: { fontSize: 17, lineHeight: 24, fontWeight: "400", color: colors.inkMuted, marginTop: 2 },
+  footer: { paddingHorizontal: 28, paddingTop: space.md, paddingBottom: space.lg, gap: space.md },
 });

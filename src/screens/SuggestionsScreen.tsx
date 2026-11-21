@@ -1,7 +1,8 @@
 // Stage 2: what would help most, with the AI before/after preview and include-in-estimate checkboxes.
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
+import { Text } from "../ui/Text";
 import type { FixtureId, ForWhom, IntakeAnswers, Suggestion } from "../contracts";
 import { FIXTURES, STRENGTH_LABEL } from "../fixtures";
 import { shouldUseRecorded } from "../flow/runAnalysis";

@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, View } from "react-native";
+import { Text } from "../ui/Text";
 import type { ForWhom, Mobility, Worry } from "../contracts";
 import { SAMPLE_PHOTOS, SAMPLE_ROOM } from "../data/sample";
 import { useSession } from "../state/session";

@@ -2,7 +2,8 @@
 // line on Welcome, or a three-finger touch anywhere.
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState, useSyncExternalStore, type ReactNode } from "react";
-import { Modal, Pressable, ScrollView, StyleSheet, Switch, Text, View } from "react-native";
+import { Modal, Pressable, ScrollView, StyleSheet, Switch, View } from "react-native";
+import { Text } from "../ui/Text";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { getCallLog, subscribeCallLog } from "../ai/log";
 import { BUILD_SHA, HAS_KEY } from "../config";
