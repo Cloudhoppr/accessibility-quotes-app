@@ -8,6 +8,14 @@ import { Gap } from "../ui/components";
 import { colors, MIN_TAP, radius, space, type } from "../ui/theme";
 
 /** "2026-11-21" -> "Nov 21, 2026" (no timezone shift). */
+const EVIDENCE_URL = "https://github.com/Cloudhoppr/accessibility-quotes-app/blob/main/docs/EVIDENCE.md";
+
+const CHECKS = [
+  "Live prices from Gemini 4 are only used if they fall within a reasonable range of our checked prices. Otherwise we keep the checked price.",
+  "In testing, this check threw out Gemini's numbers for 3 of 7 fixtures, so those use hand-checked prices.",
+  "If the AI is slow or offline, simple safety rules choose the fixtures instead, so you always get an answer.",
+];
+
 export function friendlyDate(iso: string): string {
   const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(iso ?? "");
   if (!m) return iso;
@@ -77,6 +85,28 @@ export default function SourcesSheet({
             Prices are for {SAVED_PRICES.location}, gathered {friendlyDate(SAVED_PRICES.gatheredOn)}. Each range includes parts and
             installation. Sources often give New York City or national ranges rather than Chelsea-only prices.
           </Text>
+
+          <View style={st.checks}>
+            <Text style={type.label} accessibilityRole="header">
+              How we check these numbers
+            </Text>
+            <Gap h={space.sm} />
+            {CHECKS.map((c) => (
+              <View key={c} style={{ flexDirection: "row", marginBottom: space.sm }}>
+                <MaterialCommunityIcons name="check-circle-outline" size={20} color={colors.success} style={{ marginTop: 2 }} />
+                <Text style={[type.body, { fontSize: 17, lineHeight: 23, flex: 1, marginLeft: space.sm }]}>{c}</Text>
+              </View>
+            ))}
+            <Pressable
+              onPress={() => Linking.openURL(EVIDENCE_URL).catch(() => {})}
+              accessibilityRole="link"
+              accessibilityLabel="Read the full test results. Opens in browser."
+              style={({ pressed }) => [st.source, { marginTop: space.sm, marginBottom: 0 }, pressed && { backgroundColor: colors.primarySoft }]}
+            >
+              <Text style={[type.label, { flex: 1, color: colors.primary }]}>Read the full test results</Text>
+              <MaterialCommunityIcons name="open-in-new" size={20} color={colors.primary} />
+            </Pressable>
+          </View>
 
           {liveSources.length > 0 && (
             <Section title="Checked just now with Gemini 4 + Google Search" sources={liveSources} live />
@@ -163,4 +193,12 @@ const st = StyleSheet.create({
     marginBottom: space.sm,
   },
   liveDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.success, marginRight: space.sm },
+  checks: {
+    marginTop: space.xl,
+    backgroundColor: colors.surface,
+    borderRadius: radius.md,
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: space.lg,
+  },
 });
